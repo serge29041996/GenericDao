@@ -48,7 +48,7 @@ public class StudentDaoTests {
     Assert.assertEquals(savedStudent, studentDao.get(savedStudent.getId()));
   }
 
-  @Test
+  @Test(expected = NullPointerException.class)
   public void testDeleteStudent() {
     savedStudent = studentDao.save(newStudent);
     studentDao.delete(savedStudent.getId());

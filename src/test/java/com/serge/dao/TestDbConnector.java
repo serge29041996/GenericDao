@@ -23,10 +23,10 @@ public class TestDbConnector {
       return DriverManager.getConnection(URL_TO_DATABASE, LOGIN, PASSWORD);
     } catch (SQLException e) {
       logger.error("Unable connect to database", e);
-      return null;
+      throw new NullPointerException("Unable connect to database " + e.getMessage());
     } catch (ClassNotFoundException e) {
       logger.error("Unable find driver class", e);
-      return null;
+      throw new NullPointerException("Unable find driver class " + e.getMessage());
     }
   }
 }

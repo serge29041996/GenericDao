@@ -53,14 +53,14 @@ public class AbstractDao<T, ID> implements GenericDao<T, ID> {
         fieldId.set(t, resultSet.getObject(1));
         return t;
       } else {
-        return null;
+        throw new NullPointerException("Unable save object");
       }
     } catch (IllegalAccessException e) {
       logger.error("Unable access to the field ", e);
-      return null;
+      throw new NullPointerException(e.getMessage());
     } catch (SQLException e) {
       logger.error("Unable save object ", e);
-      return null;
+      throw new NullPointerException("Unable save object " + e.getMessage());
     }
   }
 
@@ -76,11 +76,11 @@ public class AbstractDao<T, ID> implements GenericDao<T, ID> {
       if (rs.next()) {
         return readEntityFromResultSet(rs);
       } else {
-        return null;
+        throw new NullPointerException("No object in database");
       }
     } catch (SQLException e) {
       logger.error("Unable get object ", e);
-      return null;
+      throw new NullPointerException("Unable get object " + e.getMessage());
     }
   }
 
@@ -98,14 +98,14 @@ public class AbstractDao<T, ID> implements GenericDao<T, ID> {
       if (preparedStatement.executeUpdate() > 0) {
         return t;
       } else {
-        return null;
+        throw new NullPointerException("Unable update object");
       }
     } catch (SQLException e) {
       logger.error("Unable update object ", e);
-      return null;
+      throw new NullPointerException("Unable save object " + e.getMessage());
     } catch (IllegalAccessException e) {
       logger.error("Unable access to the field ", e);
-      return null;
+      throw new NullPointerException(e.getMessage());
     }
   }
 
@@ -170,14 +170,11 @@ public class AbstractDao<T, ID> implements GenericDao<T, ID> {
     firstPartQuery.append("(");
     for (int i = 0; i < classFields.length; i++) {
       Field classField = classFields[i];
-      classField.setAccessible(true);
       if (classField.getAnnotation(Id.class) == null) {
         addColumnName(firstPartQuery, classField);
         secondPartQuery.append("?");
-        if (i < classFields.length - 1) {
-          firstPartQuery.append(",");
-          secondPartQuery.append(",");
-        }
+        addCommaToQuery(firstPartQuery, i);
+        addCommaToQuery(secondPartQuery, i);
       }
     }
     firstPartQuery.append(") ");
@@ -192,18 +189,8 @@ public class AbstractDao<T, ID> implements GenericDao<T, ID> {
   }
 
   private StringBuilder formatSelectQuery() {
-    StringBuilder partQuery = new StringBuilder("SELECT ");
-    for (int i = 0; i < classFields.length; i++) {
-      Field classField = classFields[i];
-      if (classField.getAnnotation(Id.class) == null) {
-        addColumnName(partQuery, classField);
-        if (i < classFields.length - 1) {
-          partQuery.append(",");
-        }
-      } else {
-        partQuery.append("ID,");
-      }
-    }
+    StringBuilder partQuery = new StringBuilder("SELECT ID,");
+    addColumnNamesAndAdditionalCharactersForQuery(partQuery, "");
     partQuery.append(" FROM ");
     partQuery.append(tableName);
     return partQuery;
@@ -235,7 +222,7 @@ public class AbstractDao<T, ID> implements GenericDao<T, ID> {
       return (T) findObject;
     } catch (IllegalAccessException e) {
       logger.error("No args constructor is not accessible ", e);
-      return null;
+      throw new NullPointerException("Constructor is not accessible " + e.getMessage());
     } catch (InstantiationException e) {
       logger.error("Cannot initialize object ", e);
       return null;
@@ -253,19 +240,26 @@ public class AbstractDao<T, ID> implements GenericDao<T, ID> {
     partQuery.append(tableName);
     partQuery.append(" ");
     partQuery.append("SET ");
+    addColumnNamesAndAdditionalCharactersForQuery(partQuery, " = ?");
+    partQuery.append(" WHERE ID = ?");
+    return partQuery.toString();
+  }
+
+  private void addCommaToQuery(StringBuilder query, int currentIndexField) {
+    if (currentIndexField < classFields.length - 1) {
+      query.append(",");
+    }
+  }
+
+  private void addColumnNamesAndAdditionalCharactersForQuery(StringBuilder query,
+      String additionalCharacters) {
     for (int i = 0; i < classFields.length; i++) {
       Field classField = classFields[i];
-      classField.setAccessible(true);
       if (classField.getAnnotation(Id.class) == null) {
-        addColumnName(partQuery, classField);
-        if (i < classFields.length - 1) {
-          partQuery.append(" = ?,");
-        } else {
-          partQuery.append(" = ? ");
-        }
+        addColumnName(query, classField);
+        query.append(additionalCharacters);
+        addCommaToQuery(query, i);
       }
     }
-    partQuery.append("WHERE ID = ?");
-    return partQuery.toString();
   }
 }
