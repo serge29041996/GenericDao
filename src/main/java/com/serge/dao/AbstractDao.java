@@ -15,14 +15,15 @@ import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Realization generic dao.
  */
 public class AbstractDao<T, ID> implements GenericDao<T, ID> {
   protected final Connection connection;
-  private static final Logger logger = Logger.getLogger(AbstractDao.class);
+  private static final Logger logger = LogManager.getLogger(AbstractDao.class);
   private final Class<T> entityClass = ((Class<T>) ((ParameterizedType) getClass()
       .getGenericSuperclass())
       .getActualTypeArguments()[0]);

@@ -3,7 +3,9 @@ package com.serge.dao;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * Class for getting access to test database.
@@ -12,7 +14,7 @@ public class TestDbConnector {
   private static final String URL_TO_DATABASE = "jdbc:h2:tcp://localhost/~/test";
   private static final String LOGIN = "sa";
   private static final String PASSWORD = "";
-  private static final Logger logger = Logger.getLogger(TestDbConnector.class);
+  private static final Logger logger = LogManager.getLogger(TestDbConnector.class);
 
   private TestDbConnector() {
   }
